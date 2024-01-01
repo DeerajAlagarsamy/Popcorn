@@ -91,6 +91,7 @@ function SearchBar() {
   );
 }
 function Numresults({ nummovies }) {
+  //---------------
   return (
     <p className="num-results">
       Found <strong>{nummovies.length}</strong> results
