@@ -54,19 +54,30 @@ const key = "16f27ccf";
 const key2 = "a5dcbc1b";
 
 export default function App() {
+  const [query, setQuery] = useState("");
+
   const [movies, setMovies] = useState([]);
   const [watched, setWatched] = useState([]);
   const [isloading, setloading] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
-  const query = "interstellar";
+  const tempquery = "interstellar";
+
+// useEffect(function(){
+//   console.log("a");
+// },[]);
+// useEffect(function(){
+//   console.log("b");
+// });
+
+// console.log("c");
 
   useEffect(function () {
     async function fetchmovies() {
       try {
         setloading(true);
-
+        setErrorMessage("");
         const res = await fetch(
-          `http://www.omdbapi.com/?apikey=${key2}&s=${query}`,
+          `http://www.omdbapi.com/?apikey=${key}&s=${query}`,
         );
         if (!res.ok)
           throw new Error("Something went wrong with fetching the movies");
@@ -83,14 +94,19 @@ export default function App() {
         setloading(false);
       }
     }
+    if (query.length<3){
+      setMovies([]);
+      setErrorMessage("");
+return;
+    }
     fetchmovies();
-  }, []);
+  }, [query]);
 
   return (
     <>
       <NavBar>
         <Logo />
-        <SearchBar />
+        <SearchBar query={query} setQuery={setQuery}/>
         <Numresults nummovies={movies} />
       </NavBar>
 
@@ -131,8 +147,7 @@ function Logo() {
     </div>
   );
 }
-function SearchBar() {
-  const [query, setQuery] = useState("");
+function SearchBar({query, setQuery}) {
   return (
     <input
       className="search"
