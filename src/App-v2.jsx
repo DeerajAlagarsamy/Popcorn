@@ -1,6 +1,5 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import StarRating from "./star";
-
 
 const average = (arr) =>
   arr.reduce((acc, cur, i, arr) => acc + cur / arr.length, 0);
@@ -15,12 +14,11 @@ export default function App() {
   const [isloading, setloading] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
   // const [watched, setWatched] = useState([]);
-  const [watched, setWatched] = useState(function(){
-    const storedValue= localStorage.getItem("watched");
+  const [watched, setWatched] = useState(function () {
+    const storedValue = localStorage.getItem("watched");
     return JSON.parse(storedValue);
-
   });
-  
+
   function handleSelectMovie(id) {
     setSelectedid((Selectedid) => (id === Selectedid ? null : id));
   }
@@ -35,9 +33,12 @@ export default function App() {
     setWatched((watched) => watched.filter((movie) => movie.imdbID !== id));
   }
 
-useEffect(function(){
-  localStorage.setItem("watched", JSON.stringify(watched))
-},[watched]);
+  useEffect(
+    function () {
+      localStorage.setItem("watched", JSON.stringify(watched));
+    },
+    [watched]
+  );
 
   useEffect(
     function () {
@@ -145,6 +146,27 @@ function Logo() {
   );
 }
 function SearchBar({ query, setQuery }) {
+  const inputEL = useRef(null);
+  useEffect(
+    function () {
+      function callback(e) {
+        if (document.activeElement === inputEL.current) return;
+        if (e.code === "Enter") {
+          inputEL.current.focus();
+          setQuery("");
+        }
+      }
+      document.addEventListener("keydown", callback);
+      return () => document.addEventListener("keydown", callback);
+    },
+    [setQuery]
+  );
+
+  // useEffect(function(){
+  //   const el = document.querySelector(".search");
+  //   console.log(el);
+  //   el.focus();
+  // },[])
   return (
     <input
       className="search"
@@ -152,6 +174,7 @@ function SearchBar({ query, setQuery }) {
       placeholder="Search movies..."
       value={query}
       onChange={(e) => setQuery(e.target.value)}
+      ref={inputEL}
     />
   );
 }
@@ -224,6 +247,14 @@ function MovieDetail({ Selectedid, onCloseMovie, onAddWatched, watched }) {
     Genre: genre,
   } = movie;
 
+  const countRef = useRef(0);
+
+  useEffect(
+    function () {
+      if (userRating) countRef.current = countRef.current + 1;
+    },
+    [userRating]
+  );
 
   function handleAdd() {
     const newWatchedMovie = {
@@ -234,6 +265,7 @@ function MovieDetail({ Selectedid, onCloseMovie, onAddWatched, watched }) {
       imdbRating: Number(imdbRating),
       runtime: Number(runtime.split(" ").at(0)),
       userRating,
+      countRatingDecisions: countRef.current,
     };
     onAddWatched(newWatchedMovie);
     onCloseMovie();
